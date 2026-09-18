@@ -1,103 +1,139 @@
-import json
-import os
+import json, os
+from datetime import datetime
 
-print("Welcome to My Mechanical App - Garage Edition! 🔧")
+print("Welcome to My Mechanical App - MONEY EDITION! 💰🔧")
 
 name = input("Enter your name: ")
-print(f"Hello Eng. {name}!\n")
+print(f"Hello Boss {name}!\n")
 
-# File ya kuhifadhi customers
-CUSTOMER_FILE = "customers.json"
-if not os.path.exists(CUSTOMER_FILE):
-    with open(CUSTOMER_FILE, "w") as f:
-        json.dump([], f)
+# Files
+CUST_FILE = "customers.json"
+EARN_FILE = "earnings.json"
+for f in [CUST_FILE, EARN_FILE]:
+    if not os.path.exists(f):
+        with open(f, "w") as file:
+            json.dump([], file)
 
-# --- MECHANICAL ASSISTANT BRAIN ---
-def mechanical_assistant():
-    print("\n🤖 MECHANICAL ASSISTANT: Niulize kitu (andika 'exit' kutoka)")
-    print("Mfano: 'gari inachemka', 'brake inalia', 'torque ni nini'")
-    while True:
-        q = input("You: ").lower()
-        if q == "exit":
-            break
-        if "chemka" in q or "overheat" in q:
-            print("Assistant: Check radiator maji, thermostat, na cooling fan. Usifungue radiator ikiwa moto!")
-        elif "brake" in q:
-            print("Assistant: Brake pads zimeisha ama brake fluid iko low. Skia kama kuna mluzi - badilisha pads.")
-        elif "torque" in q:
-            print("Assistant: Torque = Force x Distance. Unit ni Nm. Ndio nguvu ya kufunga bolt.")
-        elif "oil" in q:
-            print("Assistant: Oil ya Toyota 5W-30, service kila 5000km. Black oil = badilisha haraka.")
-        elif "battery" in q or "haina moto" in q:
-            print("Assistant: Check battery terminals kama ziko na kutu, ama alternator haichaji.")
-        elif "consumption" in q or "mafuta" in q:
-            print("Assistant: High consumption? Check spark plugs, air filter, na tyre pressure.")
-        else:
-            print("Assistant: Sijashika vizuri, jaribu maneno kama 'brake', 'overheat', 'oil', 'battery', 'torque'.")
+def save_earning(job, amount, commission=0):
+    with open(EARN_FILE, "r") as f:
+        data = json.load(f)
+    data.append({
+        "date": datetime.now().strftime("%d-%m-%Y"),
+        "job": job,
+        "amount": amount,
+        "commission": commission,
+        "profit": amount * 0.15 if commission else amount
+    })
+    with open(EARN_FILE, "w") as f:
+        json.dump(data, f)
 
-# --- FUNCTIONS ---
+# --- A: DIAGNOSE ---
 def diagnose():
-    print("\n[A] DIAGNOSE CAR PROBLEM")
-    prob = input("Elezea shida: (e.g. gari inachemka / inalia mbele / haiwaki): ").lower()
-    if "chemka" in prob: print("=> SOLUTION: Angalia maji ya radiator, water pump, na gasket.")
-    elif "lia" in prob or "squeak" in prob: print("=> SOLUTION: Fan belt ama brake pads. Piga WD-40 kwa belt ujaribu.")
-    elif "haiwaki" in prob or "start" in prob: print("=> SOLUTION: Battery, starter motor, ama fuel pump.")
-    elif "moshi" in prob: print("=> SOLUTION: Moshi mweusi = oil inaungua. Moshi mweupe = coolant inaingia engine.")
-    else: print("=> SOLUTION: Nipe details zaidi - sauti, moshi, ama dashboard light gani?")
+    print("\n[A] DIAGNOSE")
+    prob = input("Shida ya gari: ").lower()
+    if "chemka" in prob: print("=> Angalia radiator + water pump")
+    elif "lia" in prob: print("=> Brake pads / fan belt")
+    else: print("=> Check battery / oil")
 
-def engineering_calc():
-    print("\n[B] ENGINEERING CALCULATOR")
-    print("1. Torque (N*m) 2. Power (HP) 3. Stress")
-    c = input("Chagua 1-3: ")
+# --- B: CALCULATOR ---
+def calc():
+    print("\n[B] CALCULATOR")
     try:
-        if c == "1":
-            f = float(input("Force (N): ")); d = float(input("Distance (m): "))
-            print(f"=> Torque = {f*d} Nm")
-        elif c == "2":
-            t = float(input("Torque (Nm): ")); rpm = float(input("RPM: "))
-            hp = (t * rpm) / 7127
-            print(f"=> Power = {hp:.2f} HP")
-        elif c == "3":
-            force = float(input("Force (N): ")); area = float(input("Area (m2): "))
-            print(f"=> Stress = {force/area} Pa")
-    except: print("Weka numbers tu!")
+        f = float(input("Force N: ")); d = float(input("Distance m: "))
+        print(f"=> Torque = {f*d} Nm")
+    except: print("Weka number")
 
-def customer_manager():
-    print("\n[C] FUNDI CUSTOMER TRACKER")
-    print("1. Add Customer 2. View Customers")
-    c = input("Chagua: ")
-    with open(CUSTOMER_FILE, "r") as f:
+# --- C: CUSTOMER + MONEY ---
+def customers():
+    print("\n[C] CUSTOMER TRACKER + PESA")
+    print("1. Add Job (Mwenyewe) 2. Add Fundi Job (Commission 15%) 3. View")
+    ch = input("Chagua: ")
+    with open(CUST_FILE, "r") as f:
         data = json.load(f)
 
-    if c == "1":
-        car = input("Number plate: ")
-        job = input("Kazi gani? (e.g. oil change): ")
-        amount = input("Amount Ksh: ")
-        data.append({"plate": car, "job": job, "amount": amount})
-        with open(CUSTOMER_FILE, "w") as f:
-            json.dump(data, f)
-        print("=> Customer saved!")
-    elif c == "2":
-        if not data: print("Hakuna customers bado.")
-        for i, cust in enumerate(data, 1):
-            print(f"{i}. {cust['plate']} - {cust['job']} - Ksh {cust['amount']}")
+    if ch == "1":
+        plate = input("Number plate: ")
+        job = input("Kazi: ")
+        amt = float(input("Amount ulilipwa Ksh: "))
+        data.append({"plate": plate, "job": job, "amount": amt, "type": "My Job"})
+        with open(CUST_FILE, "w") as f: json.dump(data, f)
+        save_earning(job, amt)
+        print(f"=> Saved! Profit yako = Ksh {amt}")
 
-# --- MAIN LOOP ---
+    elif ch == "2":
+        fundi = input("Jina ya fundi: ")
+        job = input("Kazi alifanya: ")
+        amt = float(input("Client alilipa Ksh: "))
+        comm = amt * 0.15
+        data.append({"plate": fundi, "job": job, "amount": amt, "type": f"Fundi - Comm {comm}"})
+        with open(CUST_FILE, "w") as f: json.dump(data, f)
+        save_earning(job, amt, commission=True)
+        print(f"=> Fundi Job! Commission yako = Ksh {comm} (15%)")
+        print(f"=> M-Pesa: Tuma Ksh {amt-comm} kwa fundi, wewe baki na {comm}")
+
+    elif ch == "3":
+        for i, c in enumerate(data, 1):
+            print(f"{i}. {c['plate']} - {c['job']} - {c['amount']} - {c['type']}")
+
+# --- D: SPARE PARTS AFFILIATE ---
+def spare_parts():
+    print("\n[D] SPARE PARTS SHOP (Affiliate $$)")
+    parts = {
+        "1": ["Oil Filter Toyota", 1800, "https://jumia.co.ke/oil-filter - Comm 8% = 144"],
+        "2": ["Brake Pads Front", 3500, "https://jumia.co.ke/brake-pads - Comm 8% = 280"],
+        "3": ["Spark Plug x4", 2800, "https://kinga.co.ke - Comm 10% = 280"],
+        "4": ["Fan Belt", 1200, "Link yako hapa"]
+    }
+    for k, v in parts.items():
+        print(f"{k}. {v[0]} - Ksh {v[1]}")
+    ch = input("Chagua part kuona affiliate link (1-4): ")
+    if ch in parts:
+        print(f"=> {parts[ch][0]}")
+        print(f"=> Affiliate Link: {parts[ch][2]}")
+        print("=> Mtu akinunua, Jumia anakutumia pesa M-Pesa!")
+
+# --- E: EARNINGS DASHBOARD ---
+def earnings():
+    print("\n[E] EARNINGS DASHBOARD 💰")
+    with open(EARN_FILE, "r") as f:
+        data = json.load(f)
+    if not data:
+        print("Bado hujapata pesa. Add job kwanza!")
+        return
+    total = sum([d['amount'] for d in data])
+    profit = sum([d['profit'] for d in data])
+    print(f"Total Jobs: {len(data)}")
+    print(f"Total Cash Flow: Ksh {total}")
+    print(f"YOUR PROFIT (Commission + Jobs): Ksh {profit}")
+    print("\nDetails:")
+    for d in data:
+        print(f"- {d['date']}: {d['job']} - Ksh {d['profit']}")
+
+# --- F: ASSISTANT ---
+def assistant():
+    print("\n[F] MECHANICAL ASSISTANT")
+    print("Uliza kitu (exit kutoka)")
+    while True:
+        q = input("You: ").lower()
+        if q == "exit": break
+        if "chemka" in q: print("Bot: Radiator maji + fan")
+        elif "brake" in q: print("Bot: Badilisha pads")
+        elif "oil" in q: print("Bot: 5W-30 kila 5000km")
+        else: print("Bot: Jaribu 'chemka', 'brake', 'oil'")
+
+# --- MENU ---
 while True:
-    print("\n--- MAIN MENU ---")
-    print("1. A - Diagnose Gari")
-    print("2. B - Engineering Calculator")
-    print("3. C - Customer Tracker")
-    print("4. D - Mechanical Assistant (AI)")
-    print("5. Exit")
-
-    choice = input("Chagua 1-5: ")
-
-    if choice == "1": diagnose()
-    elif choice == "2": engineering_calc()
-    elif choice == "3": customer_manager()
-    elif choice == "4": mechanical_assistant()
-    elif choice == "5":
-        print(f"\nMechanical App is working! Kazi njema Eng. {name}!")
+    print("\n--- MONEY MENU ---")
+    print("1. Diagnose 2. Calculator 3. Customers & Commission")
+    print("4. Spare Parts (Affiliate) 5. Earnings Dashboard")
+    print("6. Assistant 7. Exit")
+    c = input("Chagua 1-7: ")
+    if c == "1": diagnose()
+    elif c == "2": calc()
+    elif c == "3": customers()
+    elif c == "4": spare_parts()
+    elif c == "5": earnings()
+    elif c == "6": assistant()
+    elif c == "7":
+        print(f"\nApp closed! Pesa iko safe Boss {name}!")
         break
-    else: print("Chagua 1-5 tu!")
